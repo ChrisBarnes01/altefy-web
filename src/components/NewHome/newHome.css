@@ -1,0 +1,55 @@
+.newHomeBody{
+   background-color: #efefef;
+   padding: 20px;
+   height: 100%;
+   width: 100%;
+}
+.whiteBackground{
+    background-color: #FFFFFF;
+    box-shadow: 2px 5px 14px rgba(0, 0, 0, 0.07);
+    border-radius: 6px;
+}
+
+.calendarComponent{
+    /*position: absolute;
+    width: 1187px;
+    height: 219px;
+    left: 209px;
+    top: 761px;
+
+    /* white */
+    background-color: #FFFFFF;
+    /* shadow */
+
+    box-shadow: 2px 5px 14px rgba(0, 0, 0, 0.07);
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+
+}
+
+.calendarBox{
+    padding: '10px';
+    text-align: center;
+    color: black;
+    width: 100%;
+    border-left: cornsilk;
+    border-width: 2px;
+    background-color: white;
+}
+
+.appointment{
+    margin: 10px;
+    padding: 5px;
+    border-radius: 12px;
+    text-align: center;
+    background-color: rgba(161, 183, 226, 0.25);
+}
+
+.picturesDue{
+    margin: 10px;
+    padding: 5px;
+    border-radius: 12px;
+    text-align: center;
+    background-color: rgba(58, 155, 121, 0.25);
+}

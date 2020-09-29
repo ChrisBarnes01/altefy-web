@@ -1,0 +1,80 @@
+html, body{
+    height: 100%;
+}
+
+#root{
+    height: 100%;
+}
+
+.whiteBackground{
+    background-color: #FFFFFF;
+    box-shadow: 2px 5px 14px rgba(0, 0, 0, 0.07);
+    border-radius: 6px;
+}
+
+.tableBackground{
+    padding: 10px;
+    background-color: #FFFFFF;
+    box-shadow: 2px 5px 14px rgba(0, 0, 0, 0.07);
+    border-radius: 6px;
+    flex-direction: column;
+}
+.tableImage{
+    width:100%;
+    max-width:150px;
+    margin: 2px;
+    display: inline-block;
+}
+
+.tableLeft{
+    display: inline-block;
+    min-width: 10%;
+    max-width: 10%;
+    text-align: center;
+}
+.tableMid{
+    display: inline-block;
+    min-width: 10%;
+    max-width: 10%;
+    text-align: center;
+}
+.tableRight{
+    display: inline-block;
+    min-width: 70%;
+    max-width: 70%;
+    text-align: center;
+}
+.tableText{
+    margin: 10px;
+    display: inline-block;
+}
+
+.bold {
+    color: black;
+
+}
+
+
+.tableImageDiv{
+    display: inline-block;
+}
+
+
+
+.mainBody{
+    background-color: #efefef;
+    padding: 20px;
+    height: 100%;
+    width: 100%;
+}
+
+.header{
+    display: inline-block; *display: inline;
+}
+
+.inputLine {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #000000;
+}
+

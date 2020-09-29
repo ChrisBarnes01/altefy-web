@@ -1,0 +1,13 @@
+.split-sidear{
+    display:flex; flex-direction:row;
+    height: 100%;
+}
+.mainBox{
+    height: 100%;
+    width: 100%;
+    background-color: teal;
+}
+.non-auth{
+    height: 100%;
+    background-color: #A1B7E2;
+}

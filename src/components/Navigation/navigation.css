@@ -1,0 +1,40 @@
+ul{
+    list-style: none;    
+}
+.sidebarLink{
+    display:flex; flex-direction:row;
+    display: table;
+    margin: 0 auto;
+    width: 80%;
+    padding: 10;
+    border-radius: 15px;
+}
+
+.circleImage{
+    margin-top: 30px;
+    margin-bottom: 15px;
+    width: 55% !important;
+}
+
+.titleSidebar{
+    margin-left: 10px;
+    margin-right: 10px;
+    font-size: 32px;
+}
+
+Image{
+    object-fit: scale-down;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.sidebarOverall{
+    max-width: 125px;
+    margin: auto;
+    text-align: center;
+}
+
+.centered{
+    margin-left: auto;
+    margin-right: auto;
+}
