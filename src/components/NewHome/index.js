@@ -79,6 +79,7 @@ class NewHome extends Component {
     this.state = {
       loading: false,
       notifications: [],
+      calendarEvents: new Map()
     };
   }
 
@@ -178,7 +179,11 @@ class NewHome extends Component {
       this.setState({
         notifications: notificationsList,
         loading: false,
+        calendarEvents: calendarMap
       });
+
+      console.log("State Set!!")
+      console.log(this.state.calendarEvents)
     });
   }
 
