@@ -19,23 +19,18 @@ const getDateString = () => {
   return monthNames[month] + " " + year;
 }
 
-const getWelcomeMessage = () => {
-  return "Bienvenidos Username"
-}
-
-
-
 const getDayPlus = (dayNumber) =>{
-    var d = new Date();
-    var day = d.getDay() + dayNumber
-    if (day > 6){
-      day = day - 7
-    }
-
-    return dayNames[day];
-
+  var date = new Date();
+  var datePlus = date.addDays(dayNumber)
+  return dayNames[datePlus.getDay()];
 }
 
+//function to iterate days
+Date.prototype.addDays = function(days) {
+  var date = new Date(this.valueOf());
+  date.setDate(date.getDate() + days);
+  return date;
+}
 
 
 const rowEvents = {
@@ -47,20 +42,13 @@ const rowEvents = {
   }
 };
 
-const products = [ {"notification":"This is a notification. It will be longer than most text of cource because of legacy.", "datetime":"My name"}, 
-{"notification":"This is a notification. It will be longer than most text of cource because of legacy.", "datetime":"10/28/1997"},
-{"notification":"This is a notification. It will be longer than most text of cource because of legacy.", "datetime":"10/28/1997"},
-{"notification":"This is a notification. It will be longer than most text of cource because of legacy.", "datetime":"10/28/1997"},  
-{"notification":"This is a notification. It will be longer than most text of cource because of legacy.", "datetime":"10/28/1997"},
-{"notification":"This is a notification. It will be longer than most text of cource because of legacy.", "datetime":"10/28/1997"},
-{"notification":"This is a notification. It will be longer than most text of cource because of legacy.", "datetime":"10/28/1997"}  ];
 const columns = [{
   dataField: 'notification',
   text: '', 
   headerAttrs: {
     hidden: true,
     width: '20px',
-    textAlign: 'left'
+    textalign: 'left'
   }
 }, {
   dataField: 'datetime',
@@ -77,11 +65,62 @@ class NewHome extends Component {
     super(props);
  
     this.state = {
+      firstName: "must get firstname of doctor",
       loading: false,
       notifications: [],
       calendarEvents: new Map()
     };
   }
+
+  getPicturesDue(message){
+    return (
+      <div className="picturesDue">
+        <p>{ message }</p>
+      </div>
+    )
+  }
+
+  getAppointment(message, time){
+    return (
+      <div className="appointment">
+        <p>{ message }</p>
+        <p>{ time }</p>
+      </div>
+    )
+  }
+
+  getEventsForDay(dayNumber){
+    var currentDate = new Date();
+    var dateOfKey =  currentDate.addDays(dayNumber);
+    const ye = new Intl.DateTimeFormat('es', { year: 'numeric' }).format(dateOfKey);
+    const mo = new Intl.DateTimeFormat('es', { month: '2-digit' }).format(dateOfKey);
+    const da = new Intl.DateTimeFormat('es', { day: '2-digit' }).format(dateOfKey);
+    //day-month-year
+    var key = da+"-"+mo+"-"+ye;
+    //console.logconsole.log("KEY FOR CALENDAR", key)
+
+    var eventsOnThisDate = this.state.calendarEvents[key];
+    //console.log("Events on Date", eventsOnThisDate)
+    //console.log("CalendarEvents", this.state.calendarEvents)
+    //console.log("CalendarEvents Keys", this.state.calendarEvents["04-10-2020"])
+  
+    var final = [];
+    if (eventsOnThisDate != undefined){
+      for (var i = 0; i < eventsOnThisDate.length; i ++) {
+        var type = eventsOnThisDate[i]["type"];
+        var message = eventsOnThisDate[i]["message"];
+        if (type == 1){
+          var time = eventsOnThisDate[i]["time"];
+          final.push(this.getAppointment(message, time));
+        }
+        else{
+          final.push(this.getPicturesDue(message));
+        }
+    }
+    }
+    
+    return (final);
+  };
 
   componentDidMount() {
     this.setState({ loading: true });
@@ -89,16 +128,12 @@ class NewHome extends Component {
     this.props.firebase.patients().on('value', snapshot => {
       const usersObject = snapshot.val();
       
-      /*const usersList = Object.keys(usersObject).map(key => ({
-        notification:key, 
-        datetime:usersObject[key].whatsAppNumber  
-      }));*/
       var usersObjectKeys = Object.keys(usersObject); 
       var notificationsList = [];
       var calendarMap = new Map();
       for (var i = 0; i < usersObjectKeys.length; i++){
         var user = usersObject[usersObjectKeys[i]];
-        console.log(user)
+        //console.log(user)
         if (user["hasBeenAccessed"]){
           //Get Notifications for checkins
           var checkInNotificationArray = user["checkInObjectList"]
@@ -118,17 +153,17 @@ class NewHome extends Component {
           }
           //Get Notifications for Photos Uploaded
           var photoNotificationArray = user["photoSetList"]
-          console.log("DOING PHOTOS ", user["firstName"])
+          //console.log("DOING PHOTOS ", user["firstName"])
           var photoKeys = Object.keys(photoNotificationArray)
           for (var k = 0; k < photoKeys.length; k++){
             var photoObject = photoNotificationArray[photoKeys[k]]
-            console.log("PHOTO OBJECT IS")
-            console.log(photoObject)
-            console.log(photoObject["viewedNotification"])
+            //console.log("PHOTO OBJECT IS")
+            //console.log(photoObject)
+            //console.log(photoObject["viewedNotification"])
             if (!photoObject["viewedNotification"]){
               var notificationTemplate = user["firstName"] + " uploaded a set of photos";
               var dateTemplate = photoObject["epochTime"]
-              console.log(date)
+              //console.log(date)
               var date = new Date(dateTemplate)
               const ye = new Intl.DateTimeFormat('es', { year: 'numeric' }).format(date);
               const mo = new Intl.DateTimeFormat('es', { month: 'short' }).format(date);
@@ -141,9 +176,12 @@ class NewHome extends Component {
           var calendarArray = user["calendarObjectList"];
           console.log("calendarArray")
           console.log(calendarArray);
-          for (var l = 0; l < calendarArray.length; l++){
+          var calendarArrayKeys = Object.keys(calendarArray);
+          console.log("okay")
+          for (var l = 0; l < calendarArrayKeys.length; l++){
+            console.log("we went in")
             console.log(calendarArray[l]);
-            var calendarEvent = calendarArray[l];
+            var calendarEvent = calendarArray[calendarArrayKeys[l]];
             var calendarTime = calendarEvent["epochTime"]
             console.log(calendarEvent)
             var overallDate = new Date(calendarTime);
@@ -151,11 +189,37 @@ class NewHome extends Component {
             console.log(year)
             var day = calendarEvent["appointment_date"]
             var type = calendarEvent["appointment_type"]
+            const ye = new Intl.DateTimeFormat('es', { year: 'numeric' }).format(overallDate);
+            const mo = new Intl.DateTimeFormat('es', { month: '2-digit' }).format(overallDate);
+            const da = new Intl.DateTimeFormat('es', { day: '2-digit' }).format(overallDate);
+            //month-day-year
             //Add year+day key to 
-            var key = day + year;
+            var key = da+"-"+mo+"-"+ye;
             console.log("key", key);
             //Check to see CalendarMapKey
-            var toAdd = "hello " + user["firstName"]
+            if (parseInt(type) == 1){
+              var message = "appointment - " + user["firstName"]
+            }
+            else {
+              var message = "pictures due - " + user["firstName"]
+            }
+            var minutes = overallDate.getMinutes();
+            var timeOfDay = "am";
+            if (minutes < 10){
+              minutes = "0" + minutes
+            }
+            var hours = overallDate.getHours();
+            if (hours > 11){
+              hours = hours - 12; 
+              timeOfDay = "pm"
+            }
+            if (hours == 0){
+              hours = 12;
+            }
+
+            var time = hours + ":" + minutes + " " + timeOfDay;
+            var toAdd = {"message": message, "type": type, "time":time};
+            console.log(toAdd)
             if (calendarMap[key] != undefined){
               calendarMap[key].push(toAdd);
             }
@@ -194,7 +258,7 @@ class NewHome extends Component {
   render() {
     return (
       <div className='newHomeBody'>
-        <h1>{ getWelcomeMessage() }</h1>
+        <h1>Bienvenidos  { this.state.firstName }</h1>
         <h3>Notificaciones</h3>
 
         <div className="whiteBackground">
@@ -215,47 +279,33 @@ class NewHome extends Component {
         <div className="calendarComponent">
           <div className="calendarBox">
             <p>{ getDayPlus(0) }</p>
-            <div className="picturesDue">
-              <p>Pictures Due</p>
-            </div>
-            <div className="appointment">
-              <p>Appointent</p>
-            </div>
-            
-
+            {this.getEventsForDay(0)}
           </div>
           <div className="calendarBox">
             <p>{ getDayPlus(1) }</p>
-            <div className="picturesDue">
-              <p>Pictures Due</p>
-            </div>
-
+            {/*Setup the requests of the day here */}
+            {this.getEventsForDay(1)}
           </div>
 
           <div className="calendarBox">
             <p>{ getDayPlus(2) }</p>
-            <div className="picturesDue">
-              <p>Pictures Due</p>
-            </div>
-            <div className="appointment">
-              <p>Appointent</p>
-            </div>
-
+            {this.getEventsForDay(2)}
           </div>
           <div className="calendarBox">
             <p>{ getDayPlus(3) }</p>
-
+            {this.getEventsForDay(3)}
           </div>
           <div className="calendarBox">
             <p>{ getDayPlus(4) }</p>
-
+            {this.getEventsForDay(4)}
           </div>
           <div className="calendarBox">
             <p>{ getDayPlus(5) }</p>
-
+            {this.getEventsForDay(5)}
           </div>
           <div className="calendarBox">
             <p>{ getDayPlus(6) }</p>
+            {this.getEventsForDay(6)}
 
           </div>
         </div>

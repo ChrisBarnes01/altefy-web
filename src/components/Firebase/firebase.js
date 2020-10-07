@@ -49,12 +49,53 @@ export default class Firebase {
 
   //GetCalendar(Map with Date)
 
+  createPatientAccount = (username, tempPassword) => {
+    
+    this.doCreateUserWithEmailAndPassword(username + "@test.com", tempPassword).catch(function(error) {
+  		// Handle Errors here.
+  		var errorCode = error.code;
+  		var errorMessage = error.message;
+  		console.log(errorCode);
+  	})
+    var myRef = this.patients();
+    myRef.once('value').then(function(snapshot)
+    {
+      var data = snapshot.val();	
+      //if the userName already exists in the DataBase
+      if(data[username] !== undefined){
+      }
+      //If the doctor does not exist, create them on the DataBase!
+      else{
+        myRef.update({[username]: {hasBeenAccessed: false}});
+      }
+    })
+  }
+
+  createNewAppointment = (patientID, appointment_type, date, appointment_length) => {
+    var myPatientRef = this.onePatient(patientID);
+    var epochTime = date.getTime()
+    var calendarEvent = {appointment_date: epochTime, appointment_type: appointment_type, epochTime: epochTime, appointment_length: appointment_length}
+    console.log(calendarEvent);
+    myPatientRef.once('value').then(function(snapshot)
+    {
+      var data = snapshot.val();	
+      console.log(data);
+      //if the calendarList already exists in the DataBase
+      
+      myPatientRef.child("calendarObjectList").push(calendarEvent);
+
+      /*if(data[] !== undefined){
+
+      }
+      //If the doctor does not exist, create them on the DataBase!
+      else{
+        myRef.update({[username]: {hasBeenAccessed: false}});
+      }*/
+    })
 
 
-
-
-  createNewAppointment = (patientID, appointment_type, day, date) => {
-    console.log(appointment_type, day, date, patientID);
+    console.log("OK, Successfully transfered data to createAppointment!!")
+    
   }
 
   patients = () => this.db.ref('patients');

@@ -19,7 +19,7 @@ import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
 import './app.css'
 import IndividualPatient from '../IndividualPatient';
 import { AuthUserContext } from '../Session';
-import Calendar from '../Calendar';
+import Calendar1 from '../Calendar';
 import IndividualPhotos from '../IndividualPhotos'
 
 
@@ -55,7 +55,7 @@ const AuthorizedAccount = () => (
           <Route path={ROUTES.SIGN_IN} component={SignInPage} />
           <Route path={ROUTES.PASSWORD_FORGET} component={PasswordForgetPage} />
           <Route path={ROUTES.HOME} component={NewHome} />
-          <Route path={ROUTES.CALENDAR} component={Calendar} />
+          <Route path={ROUTES.CALENDAR} component={Calendar1} />
           <Route exact path={ROUTES.PATIENTS} component={PatientsPage} />
           <Route exact path={ROUTES.PATIENTS + "/:id"} component={IndividualPatient} />
           <Route exact path={ROUTES.PATIENTS + "/:id" + "/:photoID"} component={IndividualPhotos} />

@@ -86,37 +86,6 @@ class PatientsPage extends Component {
   }];
 
 
-
-  const createPatientAccount = () => {
-    var username = document.getElementById("patientID").value;
-    var tempPassword = document.getElementById("password").value;
-    console.log("Username: ", username);
-    console.log("tempPassword: ", tempPassword);
-
-    this.props.firebase.doCreateUserWithEmailAndPassword(username + "@test.com", tempPassword).catch(function(error) {
-  		// Handle Errors here.
-  		var errorCode = error.code;
-  		var errorMessage = error.message;
-  		console.log(errorCode);
-  		//console.log("SUBMITTED");
-  	})
-    var myRef = this.props.firebase.patients();
-    myRef.once('value').then(function(snapshot)
-    {
-      var data = snapshot.val();	
-      console.log(data);
-      //if the userName already exists in the DataBase
-      if(data[username] !== undefined){
-    
-      }
-      //If the doctor does not exist, create them on the DataBase!
-      else{
-        myRef.update({[username]: {"hasBeenAccessed": false}});
-      }
-    })
-  }
-
-
   const MyVerticallyCenteredModal = (props) => {
     return (
       <Modal
@@ -138,13 +107,14 @@ class PatientsPage extends Component {
           <input id="lname" className="inputLine"></input>
           <p>TEMPORARY PASSWORD</p>
           <input id="password" className="inputLine"></input>
-
           
         </Modal.Body>
         <Modal.Footer>
           <Button onClick={() => {
             console.log("WE DOING THIS!!")
-            createPatientAccount()
+            var username = document.getElementById("patientID").value;
+            var tempPassword = document.getElementById("password").value;
+            this.props.firebase.createPatientAccount(username, tempPassword)
             return props.onHide()}
             }>Add Patient</Button>
         </Modal.Footer>

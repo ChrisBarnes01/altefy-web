@@ -23,23 +23,29 @@ class IndividualPatient extends Component {
   componentDidMount() {
     this.setState({ loading: true });
  
-    this.props.firebase.patientPhotos(this.props.match.params.id).on('value', snapshot => {
-      const usersObject = snapshot.val();
+    this.props.firebase.onePatient(this.props.match.params.id).on('value', snapshot => {
+      const user = snapshot.val();
+      const hasBeenAccessed = user["hasBeenAccessed"];
+      var usersList = []
+      if (hasBeenAccessed){
+        const usersObject = user["photoSetList"];
       
-      const usersList = Object.keys(usersObject).map(key => ({
-        date_taken:key, 
-        alligner_number: 1, 
-        photo_type: usersObject[key].photoSetType,
-        photos: usersObject[key].photoReferences
-      }));
-
+        usersList = Object.keys(usersObject).map(key => ({
+          date_taken:key, 
+          alligner_number: 1, 
+          photo_type: usersObject[key].photoSetType,
+          photos: usersObject[key].photoReferences
+        }));
+      }
       this.setState({
+        hasBeenAccessed: hasBeenAccessed,
         users: usersList,
         startDate: new Date(),
         loading: false,
         modalShow: false, 
         setModalShow: false
       });
+      
     });
   }
 
@@ -48,7 +54,7 @@ class IndividualPatient extends Component {
   }
 
   render() {
-    const { users, loading } = this.state;
+    const { users, loading, hasBeenAccessed } = this.state;
 
     //NEW STUFF 
 
@@ -62,13 +68,7 @@ class IndividualPatient extends Component {
     };
 
 
-    const createAppointment = (patientID, appointment_type, day, date) => {
-        this.props.firebase.createNewAppointment(patientID, appointment_type, day, date);
-        console.log("YEp, we creating appointment")
-    
-      }
-
-    const handleChange = date => {
+    const handleChange = (date) => {
         this.setState({
           startDate: date
         });
@@ -101,24 +101,43 @@ class IndividualPatient extends Component {
 
             <DatePicker
               selected={this.state.startDate}
-              onChange={this.handleChange}
+              onChange={date => this.setState({
+                startDate: date
+              })}
+              locale="en"
+              showTimeSelect
+              timeFormat="p"
+              timeIntervals={1}
+              dateFormat="Pp"
             />
 
             <p>Date</p>
-            <input id="fname" className="inputLine"></input>
+            <select name="appointment_length" id="appointment_length">
+                <option value="15">15 minutos</option>
+                <option value="30">30 minutos</option>
+                <option value="45">45 minutos</option>
+                <option value="60">1 hora</option>
+                <option value="75">1 hora 15 minutos</option>
+                <option value="90">1 hora 30 minutos</option>
+                <option value="105">1 hora 45 minutos</option>
+                <option value="120">2 horas</option>
+                <option value="135">2 horas 15 minutos</option>
+                <option value="150">2 horas 30 minutos</option>
+                <option value="165">2 horas 45 minutos</option>
+                <option value="180">3 horas</option>
+                </select>
 
             <select name="appointment_type" id="appointment_type">
-                <option value="pictures_due">Pictures Due</option>
-                <option value="physical_appointment">Physical Appointment</option>
+                <option value="0">Pictures Due</option>
+                <option value="1">Physical Appointment</option>
                 </select>
 
             </Modal.Body>
             <Modal.Footer>
             <Button onClick={() => {
-                console.log("WE DOING THIS!!")
-                createAppointment(this.props.match.params.id, "appointment_type", "day", "date")
+                this.props.firebase.createNewAppointment(this.props.match.params.id, document.getElementById('appointment_type').value, this.state.startDate,document.getElementById('appointment_length').value );
                 return props.onHide()}
-                }>Add Patient</Button>
+                }>Add Calendar Event</Button>
             </Modal.Footer>
         </Modal>
         );
@@ -142,8 +161,8 @@ class IndividualPatient extends Component {
 
         {loading && <div>Loading ...</div>}
 
-
-        <div className="tableBackground">
+        
+        {hasBeenAccessed && <div className="tableBackground">
             <div className="tableLeft">
                 <p className="tableText"><strong>DATE TAKEN</strong></p>
             </div>
@@ -153,9 +172,9 @@ class IndividualPatient extends Component {
             <div className="tableMid">
                 <p className="tableText"><strong>PHOTO TYPE</strong></p>
             </div>
-        <div className="tableRight">
-            <p className="tableText"><strong>PHOTOS</strong></p>
-        </div>
+            <div className="tableRight">
+              <p className="tableText"><strong>PHOTOS</strong></p>
+            </div>
 
         {users.map(user => (
         <div onClick={() => jumpToNextPage(user.date_taken)}>{
@@ -178,8 +197,11 @@ class IndividualPatient extends Component {
             </div>
         </div>}</div>
         ))}
-        </div>
-
+        </div>}
+        
+        {!hasBeenAccessed && <div>
+            <p>The user has not uploaded any photos</p>
+          </div>}
       </div>
     );
   }
