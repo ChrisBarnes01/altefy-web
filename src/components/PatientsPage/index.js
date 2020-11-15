@@ -113,7 +113,9 @@ class PatientsPage extends Component {
             console.log("WE DOING THIS!!")
             var username = document.getElementById("patientID").value;
             var tempPassword = document.getElementById("password").value;
-            this.props.firebase.createPatientAccount(username, tempPassword)
+            var firstName = document.getElementById("fname").value;
+            var lastName = document.getElementById("lname").value;
+            this.props.firebase.createPatientAccount(username, tempPassword, firstName, lastName);
             return props.onHide()}
             }>Add Patient</Button>
         </Modal.Footer>
