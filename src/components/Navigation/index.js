@@ -65,7 +65,7 @@ const NavigationAuth = () => (
 
     <Image className="circleImage" src="https://morrisinsurancegroup.com/wp-content/uploads/2018/01/blank-avatar.png" roundedCircle fluid   />
 
-    <h1 className="titleSidebar" >Altefy</h1>
+    <h1 className="titleSidebar">Altefy</h1>
 
     <ColoredLine color='#000000'/>
 

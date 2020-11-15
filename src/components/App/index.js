@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 
 import Navigation from '../Navigation';
 import LandingPage from '../Landing';
@@ -37,9 +37,12 @@ const App = () => (
 
  const NonAuth = () => (
    <div className="non-auth">
-    <Route exact path={ROUTES.LANDING} component={NewHome} />
-    <Route path={ROUTES.SIGN_UP} component={SignUpPage} />
-    <Route path={ROUTES.SIGN_IN} component={SignInPage} />
+     <Switch>
+      <Route exact path={ROUTES.LANDING} component={SignInPage} />
+      <Route path={ROUTES.SIGN_UP} component={SignUpPage} />
+      <Route path={ROUTES.SIGN_IN} component={SignInPage} />
+      <Route component={SignInPage} />
+     </Switch>
    </div>
   
 );
@@ -50,15 +53,18 @@ const AuthorizedAccount = () => (
           <Navigation />
         </div>
         <div className="mainBox">
-          <Route exact path={ROUTES.LANDING} component={NewHome} />
-          <Route path={ROUTES.SIGN_UP} component={SignUpPage} />
-          <Route path={ROUTES.SIGN_IN} component={SignInPage} />
-          <Route path={ROUTES.PASSWORD_FORGET} component={PasswordForgetPage} />
-          <Route path={ROUTES.HOME} component={NewHome} />
-          <Route path={ROUTES.CALENDAR} component={Calendar1} />
-          <Route exact path={ROUTES.PATIENTS} component={PatientsPage} />
-          <Route exact path={ROUTES.PATIENTS + "/:id"} component={IndividualPatient} />
-          <Route exact path={ROUTES.PATIENTS + "/:id" + "/:photoID"} component={IndividualPhotos} />
+          <Switch>
+            <Route exact path={ROUTES.LANDING} component={NewHome} />
+            <Route path={ROUTES.SIGN_UP} component={SignUpPage} />
+            <Route path={ROUTES.SIGN_IN} component={SignInPage} />
+            <Route path={ROUTES.PASSWORD_FORGET} component={PasswordForgetPage} />
+            <Route path={ROUTES.HOME} component={NewHome} />
+            <Route path={ROUTES.CALENDAR} component={Calendar1} />
+            <Route exact path={ROUTES.PATIENTS} component={PatientsPage} />
+            <Route exact path={ROUTES.PATIENTS + "/:id"} component={IndividualPatient} />
+            <Route exact path={ROUTES.PATIENTS + "/:id" + "/:photoID"} component={IndividualPhotos} />
+            <Route render={() => <h1>404: page not found</h1>} />
+          </Switch>
         </div>
     </div>
 );

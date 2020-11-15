@@ -9,7 +9,7 @@ import { withRouter } from "react-router-dom";
 const monthNames = ["enero", "febrero", "marzo", "abril", "mayo", "junio",
   "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
 ];
-
+ 
 const dayNames = ["domingo", "lunes", "martes", "meircoles", "jueves", "viernes", "sabado" ]
 
 const getDateString = () => { 
@@ -32,15 +32,6 @@ Date.prototype.addDays = function(days) {
   return date;
 }
 
-
-const rowEvents = {
-  onClick: (e, row, rowIndex) => {
-    console.log("WE CLICKED")
-    console.log("e: ", e);
-    console.log("ROW: ", row)
-    console.log("RowIndex: ", rowIndex)
-  }
-};
 
 const columns = [{
   dataField: 'notification',
@@ -95,15 +86,11 @@ class NewHome extends Component {
     const ye = new Intl.DateTimeFormat('es', { year: 'numeric' }).format(dateOfKey);
     const mo = new Intl.DateTimeFormat('es', { month: '2-digit' }).format(dateOfKey);
     const da = new Intl.DateTimeFormat('es', { day: '2-digit' }).format(dateOfKey);
-    //day-month-year
+
     var key = da+"-"+mo+"-"+ye;
-    //console.logconsole.log("KEY FOR CALENDAR", key)
 
     var eventsOnThisDate = this.state.calendarEvents[key];
-    //console.log("Events on Date", eventsOnThisDate)
-    //console.log("CalendarEvents", this.state.calendarEvents)
-    //console.log("CalendarEvents Keys", this.state.calendarEvents["04-10-2020"])
-  
+
     var final = [];
     if (eventsOnThisDate != undefined){
       for (var i = 0; i < eventsOnThisDate.length; i ++) {
@@ -122,132 +109,15 @@ class NewHome extends Component {
     return (final);
   };
 
-  componentDidMount() {
+  async componentDidMount() {
     this.setState({ loading: true });
- 
     this.props.firebase.patients().on('value', snapshot => {
-      const usersObject = snapshot.val();
-      
-      var usersObjectKeys = Object.keys(usersObject); 
-      var notificationsList = [];
-      var calendarMap = new Map();
-      for (var i = 0; i < usersObjectKeys.length; i++){
-        var user = usersObject[usersObjectKeys[i]];
-        //console.log(user)
-        if (user["hasBeenAccessed"]){
-          //Get Notifications for checkins
-          var checkInNotificationArray = user["checkInObjectList"]
-          var checkInKeys = Object.keys(checkInNotificationArray)
-          for (var j = 0; j < checkInKeys.length; j++){
-            var checkInObject = checkInNotificationArray[checkInKeys[j]]
-            if (!checkInObject["viewedNofication"]){
-              var notificationTemplate = user["firstName"] + " checked in";
-              var dateTemplate = checkInObject["epochTime"]
-              var date = new Date(dateTemplate)
-              const ye = new Intl.DateTimeFormat('es', { year: 'numeric' }).format(date);
-              const mo = new Intl.DateTimeFormat('es', { month: 'short' }).format(date);
-              const da = new Intl.DateTimeFormat('es', { day: '2-digit' }).format(date);
-              var toAddNotfication = {"notification":notificationTemplate, "datetime":`${da}-${mo}-${ye}` }
-              notificationsList.push(toAddNotfication)
-            }
-          }
-          //Get Notifications for Photos Uploaded
-          var photoNotificationArray = user["photoSetList"]
-          //console.log("DOING PHOTOS ", user["firstName"])
-          var photoKeys = Object.keys(photoNotificationArray)
-          for (var k = 0; k < photoKeys.length; k++){
-            var photoObject = photoNotificationArray[photoKeys[k]]
-            //console.log("PHOTO OBJECT IS")
-            //console.log(photoObject)
-            //console.log(photoObject["viewedNotification"])
-            if (!photoObject["viewedNotification"]){
-              var notificationTemplate = user["firstName"] + " uploaded a set of photos";
-              var dateTemplate = photoObject["epochTime"]
-              //console.log(date)
-              var date = new Date(dateTemplate)
-              const ye = new Intl.DateTimeFormat('es', { year: 'numeric' }).format(date);
-              const mo = new Intl.DateTimeFormat('es', { month: 'short' }).format(date);
-              const da = new Intl.DateTimeFormat('es', { day: '2-digit' }).format(date);
-              var toAddNotfication = {"notification":notificationTemplate, "datetime":`${da}-${mo}-${ye}` }
-              notificationsList.push(toAddNotfication)
-            }
-          }
-          //Set Calendar for users
-          var calendarArray = user["calendarObjectList"];
-          console.log("calendarArray")
-          console.log(calendarArray);
-          var calendarArrayKeys = Object.keys(calendarArray);
-          console.log("okay")
-          for (var l = 0; l < calendarArrayKeys.length; l++){
-            console.log("we went in")
-            console.log(calendarArray[l]);
-            var calendarEvent = calendarArray[calendarArrayKeys[l]];
-            var calendarTime = calendarEvent["epochTime"]
-            console.log(calendarEvent)
-            var overallDate = new Date(calendarTime);
-            var year = overallDate.getFullYear();
-            console.log(year)
-            var day = calendarEvent["appointment_date"]
-            var type = calendarEvent["appointment_type"]
-            const ye = new Intl.DateTimeFormat('es', { year: 'numeric' }).format(overallDate);
-            const mo = new Intl.DateTimeFormat('es', { month: '2-digit' }).format(overallDate);
-            const da = new Intl.DateTimeFormat('es', { day: '2-digit' }).format(overallDate);
-            //month-day-year
-            //Add year+day key to 
-            var key = da+"-"+mo+"-"+ye;
-            console.log("key", key);
-            //Check to see CalendarMapKey
-            if (parseInt(type) == 1){
-              var message = "appointment - " + user["firstName"]
-            }
-            else {
-              var message = "pictures due - " + user["firstName"]
-            }
-            var minutes = overallDate.getMinutes();
-            var timeOfDay = "am";
-            if (minutes < 10){
-              minutes = "0" + minutes
-            }
-            var hours = overallDate.getHours();
-            if (hours > 11){
-              hours = hours - 12; 
-              timeOfDay = "pm"
-            }
-            if (hours == 0){
-              hours = 12;
-            }
-
-            var time = hours + ":" + minutes + " " + timeOfDay;
-            var toAdd = {"message": message, "type": type, "time":time};
-            console.log(toAdd)
-            if (calendarMap[key] != undefined){
-              calendarMap[key].push(toAdd);
-            }
-            else{
-              calendarMap[key] = [toAdd]
-            }
-
-          }
-
-
-        }
-        else{
-          console.log("This user hasn't been checked")
-        }
-        
-      }
-      console.log(calendarMap)
-
-      console.log(notificationsList)
-
+      const usersObject = snapshot.val(); 
       this.setState({
-        notifications: notificationsList,
+        notifications: this.props.firebase.getNotificationsFromPatientList(usersObject),
         loading: false,
-        calendarEvents: calendarMap
+        calendarEvents: this.props.firebase.getCalendarFromDoctorList(usersObject)
       });
-
-      console.log("State Set!!")
-      console.log(this.state.calendarEvents)
     });
   }
 
@@ -256,6 +126,18 @@ class NewHome extends Component {
   }
 
   render() {
+    const rowEvents = {
+      onClick: (e, row, rowIndex) => {
+        this.props.firebase.setPhotosAccessed(row["patientID"], row["photosID"]);
+        this.props.history.push('/patients/' + row["patientID"] + "/" + row["photosID"]);
+    
+        console.log("WE CLICKED")
+        console.log("e: ", e);
+        console.log("ROW: ", row)
+        console.log("RowIndex: ", rowIndex)
+      }
+    };
+
     return (
       <div className='newHomeBody'>
         <h1>Bienvenidos  { this.state.firstName }</h1>

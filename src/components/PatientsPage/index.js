@@ -85,7 +85,6 @@ class PatientsPage extends Component {
     }
   }];
 
-
   const MyVerticallyCenteredModal = (props) => {
     return (
       <Modal

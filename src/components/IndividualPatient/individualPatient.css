@@ -21,9 +21,24 @@ html, body{
 }
 .tableImage{
     width:100%;
-    max-width:150px;
+    max-width: 150px;
     margin: 2px;
     display: inline-block;
+}
+
+.tableRow{
+    border-style: solid;
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+    border-color: black;
+    border-radius: 1px;
+    transition: transform 500ms ease;
+}
+
+.tableRow:hover {
+    transform: scale(1.02);
+    background-color: #FFFFFF;
 }
 
 .tableLeft{
@@ -54,9 +69,9 @@ html, body{
 
 }
 
-
 .tableImageDiv{
     display: inline-block;
+    width: '2wv';
 }
 
 
@@ -69,7 +84,9 @@ html, body{
 }
 
 .header{
-    display: inline-block; *display: inline;
+    /*display: inline-block; *display: inline;*/
+    flex-direction: column;
+
 }
 
 .inputLine {

@@ -3,9 +3,14 @@ import BootstrapTable from 'react-bootstrap-table-next';
 import { withFirebase } from '../Firebase';
 import Button from 'react-bootstrap/Button'
 import Modal from 'react-bootstrap/Modal'
+import Dropdown from 'react-bootstrap/Dropdown'
 import './individualPatient.css'
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+
+const RENDER_PHOTOS = 0; 
+const RENDER_CHECK_INS = 1; 
+const RENDER_PHOTOS_AND_CHECK_INS = 2; 
 
 class IndividualPatient extends Component {
   constructor(props) {
@@ -13,11 +18,16 @@ class IndividualPatient extends Component {
  
     this.state = {
       loading: false,
-      users: [],
+      patientEvents: [],
+      uploadedPhotos: [], 
+      checkins: [],
       startDate: new Date(),
       isOpen: false,
+      toRender: RENDER_PHOTOS,
     };
   }
+
+  
  
 
   componentDidMount() {
@@ -26,26 +36,38 @@ class IndividualPatient extends Component {
     this.props.firebase.onePatient(this.props.match.params.id).on('value', snapshot => {
       const user = snapshot.val();
       const hasBeenAccessed = user["hasBeenAccessed"];
-      var usersList = []
+      var photosList = [];
+      var checkinList = [];
       if (hasBeenAccessed){
-        const usersObject = user["photoSetList"];
-      
-        usersList = Object.keys(usersObject).map(key => ({
+        const photosObject = user["photoSetList"];
+        photosList = Object.keys(photosObject).map(key => ({
           date_taken:key, 
           alligner_number: 1, 
-          photo_type: usersObject[key].photoSetType,
-          photos: usersObject[key].photoReferences
+          photo_type: photosObject[key].photoSetType,
+          photos: photosObject[key].photoReferences
         }));
+
+        const checkInObject = user["checkInObjectList"];
+        checkinList = Object.keys(checkInObject).map(key => ({
+          checkInKey: key
+        }));
+
+        //For all objects, combine two lists and sort by date; 
+        var allObjects = checkinList.concat(photosList)
+
+
       }
+      
       this.setState({
         hasBeenAccessed: hasBeenAccessed,
-        users: usersList,
+        patientEvents: allObjects,
+        uploadedPhotos: photosList, 
+        checkins: checkinList,
         startDate: new Date(),
         loading: false,
         modalShow: false, 
         setModalShow: false
       });
-      
     });
   }
 
@@ -54,37 +76,20 @@ class IndividualPatient extends Component {
   }
 
   render() {
-    const { users, loading, hasBeenAccessed } = this.state;
+    const { patientEvents, checkins, uploadedPhotos, loading, hasBeenAccessed, toRender } = this.state;
+    var renderText = new Map(); 
+    renderText[RENDER_PHOTOS] = "Rendering Photos"
+    renderText[RENDER_PHOTOS_AND_CHECK_INS] = "Rendering Photos and Checkins"
+    renderText[RENDER_CHECK_INS] = "Rendering CheckIns"
 
-    //NEW STUFF 
-
-    const rowEvents = {
-      onClick: (e, row, rowIndex) => {
-        console.log("WE CLICKED")
-        console.log("e: ", e);
-        console.log("ROW: ", row)
-        console.log("RowIndex: ", rowIndex)
-      }
-    };
-
-
-    const handleChange = (date) => {
-        this.setState({
-          startDate: date
-        });
-      };
-
-      var pictureTypes = ["Alligner Photos", "Check In Photos"]
+    var pictureTypes = ["Alligner Photos", "Check In Photos"]
     const pictureType = (pictureInt) => {
       return pictureTypes[pictureInt];
-
     }
     
     const jumpToNextPage = (specificImage) => {
       this.props.history.push('/patients/' + this.props.match.params.id +'/' + specificImage);
-
     }
-
 
     const MyVerticallyCenteredModal = (props) => {
         return (
@@ -143,6 +148,11 @@ class IndividualPatient extends Component {
         );
     }
 
+    const setTypeToRender = (renderType) => {
+      console.log("WE CHANGED IT!!")
+      this.setState({toRender: renderType})
+    }
+
     return (
       <div className="mainBody">
         <div className="header">
@@ -151,18 +161,29 @@ class IndividualPatient extends Component {
             Schedule Appointment
           </Button>
 
+          <Dropdown>
+            <Dropdown.Toggle variant="success" id="dropdown-basic">
+              {renderText[toRender]}
+            </Dropdown.Toggle>
+
+            <Dropdown.Menu>
+              <Dropdown.Item onClick = {() => setTypeToRender(RENDER_PHOTOS)}>Show Photos</Dropdown.Item>
+              <Dropdown.Item onClick ={() => setTypeToRender(RENDER_CHECK_INS)}>Show Checkins</Dropdown.Item>
+              <Dropdown.Item onClick={() => setTypeToRender(RENDER_PHOTOS_AND_CHECK_INS)}>Show CheckIns and Photos</Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+
           <MyVerticallyCenteredModal
             show={this.state.isOpen}
             onHide={() => {this.setState({ isOpen: false })}}
           />
 
         </div>
-        
 
         {loading && <div>Loading ...</div>}
 
         
-        {hasBeenAccessed && <div className="tableBackground">
+        {hasBeenAccessed && (toRender == RENDER_PHOTOS) &&<div className="tableBackground">
             <div className="tableLeft">
                 <p className="tableText"><strong>DATE TAKEN</strong></p>
             </div>
@@ -176,20 +197,20 @@ class IndividualPatient extends Component {
               <p className="tableText"><strong>PHOTOS</strong></p>
             </div>
 
-        {users.map(user => (
-        <div onClick={() => jumpToNextPage(user.date_taken)}>{
-        <div>
+        {uploadedPhotos.map(eventSet => (
+        <div onClick={() => jumpToNextPage(eventSet.date_taken)}>{
+        <div className="tableRow">
             <div className="tableLeft">
-                <p className="tableText">{user.date_taken}</p>
+                <p className="tableText">{eventSet.date_taken}</p>
             </div>
             <div className="tableMid">
-                <p className="tableText">{user.alligner_number}</p>
+                <p className="tableText">{eventSet.alligner_number}</p>
             </div>
             <div className="tableMid">
-                <p className="tableText">{pictureType(user.photo_type)}</p>
+                <p className="tableText">{pictureType(eventSet.photo_type)}</p>
             </div>
             <div className="tableRight">
-            {user.photos.map(photo =>(
+            {eventSet.photos.map(photo =>(
                 <div className="tableImageDiv">
                     <img className="tableImage" src={photo} />
                 </div>
@@ -198,9 +219,33 @@ class IndividualPatient extends Component {
         </div>}</div>
         ))}
         </div>}
+
+        {hasBeenAccessed && (toRender == RENDER_CHECK_INS) &&<div>
+          <div>CheckIns</div>
+          {checkins.map(object => (
+            <div>
+              {object["checkInKey"]}
+            </div>
+          ))}
+          
+          
+          
+          </div>}
+
+        {hasBeenAccessed && (toRender == RENDER_PHOTOS_AND_CHECK_INS) &&<div>
+          <div>Photos and CheckIns</div>
+          {patientEvents.map(object => (
+            <div>
+              Hello! Object Here.
+            </div>
+          ))}
+          </div>
+          }
+
+
         
         {!hasBeenAccessed && <div>
-            <p>The user has not uploaded any photos</p>
+            <p>The user has not uploaded any photos or checkins</p>
           </div>}
       </div>
     );

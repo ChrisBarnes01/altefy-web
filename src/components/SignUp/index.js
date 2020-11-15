@@ -32,22 +32,19 @@ class SignUpFormBase extends Component {
   }
  
   onSubmit = event => {
-    const { firstname, email, passwordOne } = this.state;
+    const { firstname, lastname, clinicname, whatsappnumber, email, passwordOne  } = this.state;
  
     this.props.firebase
       .doCreateUserWithEmailAndPassword(email, passwordOne)
       .then(authUser => {
-        // Create a user in your Firebase realtime database
-        return this.props.firebase
-          .user(authUser.user.uid)
-          .set({
-            firstname,
-            email,
-          });
+        console.log("First Test of AuthUser!")
+        this.props.firebase.createDoctorAccount(authUser.user.uid, firstname, lastname, clinicname, whatsappnumber, email, passwordOne)
+        this.props.history.push(ROUTES.HOME);
+        return
       })
       .then(authUser => {
+        console.log("OK sign up!")
         this.setState({ ...INITIAL_STATE })
-        this.props.history.push(ROUTES.HOME);
       })
       .catch(error => {
         this.setState({ error });

@@ -1,3 +1,6 @@
+//Adapted from https://codepen.io/alexboffey/pen/YWdzYj
+//Adapted from https://dev.to/finallynero/generating-pdf-documents-in-react-using-react-pdf-4ka7
+
 import React, { Component } from 'react';
 import BootstrapTable from 'react-bootstrap-table-next';
 import { withFirebase } from '../Firebase';
@@ -6,7 +9,147 @@ import Modal from 'react-bootstrap/Modal'
 import './individualPhotos.css'
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+//import PhotosPdf from "./photospdf.js";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { Page, Image, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
 
+// Create styles
+const styles = StyleSheet.create({
+	page: {
+	  flexDirection: 'row',
+	  backgroundColor: '#E4E4E4'
+	},
+	section: {
+	  margin: 10,
+	  padding: 10,
+	  flexGrow: 1
+	},
+	image: {
+		marginVertical: 15,
+		marginHorizontal: 100,
+	  },
+  });
+  
+  // Create Document Component
+  const PhotosPDF = (props) => (
+	<Document>
+	  <Page size="A4" style={styles.page}>
+		<View style={styles.section}>
+			{props.photosList.map(photo =>(
+				<View>
+				<Image
+					style={styles.image}
+					src="https://www.wallpapers13.com/wp-content/uploads/2016/01/Cool-and-Beautiful-Nature-desktop-wallpaper-image-2560X1600-1600x1200.jpg"
+				/>
+				<Image allowDangerousPaths={true} fixed={true} src={photo["image"]}/>
+				<Text>{props.testProp}</Text>
+				<Text>{photo["image"]} yep</Text>
+				</View>
+			))}
+		</View>
+	  </Page>
+	</Document>
+  );
+
+class Tiles extends React.Component {
+	render() {
+		// Create tile for each item in data array
+		// Pass data to each tile and assign a key
+		return (
+			<div className="tiles">
+				{this.props.data.map((data) => {
+					return <Tile data={data} key={data.id} />
+				})}
+			</div>
+		);
+	}
+}
+
+class Tile extends React.Component {
+	constructor(props) {
+			super(props);
+			this.state = {
+				open: false,
+				mouseOver: false
+			};
+			// Bind properties to class instance
+			this._clickHandler = this._clickHandler.bind(this);
+			this._mouseEnter = this._mouseEnter.bind(this);
+			this._mouseLeave = this._mouseLeave.bind(this);
+		}
+		// Event handlers to modify state values
+	_mouseEnter(e) {
+		e.preventDefault();
+		if (this.state.mouseOver === false) {
+			console.log(this.props.data.name);
+			this.setState({
+				mouseOver: true
+			})
+		}
+	}
+	_mouseLeave(e) {
+		e.preventDefault();
+		if (this.state.mouseOver === true) {
+			this.setState({
+				mouseOver: false
+			})
+		}
+	}
+	_clickHandler(e) {
+		e.preventDefault();
+		if (this.state.open === false) {
+			this.setState({
+				open: true
+			});
+		} else {
+			this.setState({
+				open: false
+			});
+		}
+	}
+
+	render() {
+		// Modify styles based on state values
+		let tileStyle = {};
+		let headerStyle = {};
+		let zoom = {};
+		// When tile clicked
+		if (this.state.open) {
+			tileStyle = {
+				width: '62vw',
+				height: '62vw',
+				position: 'absolute',
+				top: '50%',
+				left: '50%',
+				margin: '0',
+				marginTop: '-31vw',
+				marginLeft: '-31vw',
+				boxShadow: '0 0 40px 5px rgba(0, 0, 0, 0.3)',
+				transform: 'none'
+			};
+		} else {
+			tileStyle = {
+				width: '18vw',
+				height: '18vw'
+			};
+		}
+
+		return (
+			<div className="tile">
+				<img
+					onMouseEnter={this._mouseEnter}
+					onMouseLeave={this._mouseLeave}
+					onClick={this._clickHandler}
+					src={this.props.data.image}
+					alt={this.props.data.name}
+					style={tileStyle}
+				/>
+			</div>
+		);
+	}
+}
+
+//OLD STUFF
 class IndividualPhotos extends Component {
   constructor(props) {
     super(props);
@@ -19,25 +162,32 @@ class IndividualPhotos extends Component {
     };
   }
  
-
   componentDidMount() {
     this.setState({ loading: true });
-    console.log("photoID", this.props.match.params.photosID)
+    console.log("photoID", this.props.match.params.photoID)
 
     this.props.firebase.particularPhotos(this.props.match.params.id,this.props.match.params.photoID).on('value', snapshot => {
-      const usersObject = snapshot.val();
-      console.log("usersObject");
-      console.log(usersObject);
+      const capturedObject = snapshot.val();
+      console.log("capturedObject");
+      console.log(capturedObject);
+
+      var photoSet = [];
+      for (var i = 0; i < capturedObject.photoReferences.length; i++){
+        var toAdd = {"id": i, "name": "name", "image": capturedObject.photoReferences[i]}
+        photoSet.push(toAdd)
+      }
 
       this.setState({
-        photos: usersObject.photoReferences,
-        date: usersObject.date,
-        photoType: usersObject.photoSetType,
+        photos: photoSet,
+        date: capturedObject.date,
+        photoType: capturedObject.photoSetType,
         startDate: new Date(),
         loading: false,
         modalShow: false, 
         setModalShow: false
       });
+
+      console.log("state:", this.state.photos)
     });
   }
 
@@ -48,137 +198,34 @@ class IndividualPhotos extends Component {
   render() {
     const { users, loading } = this.state;
 
-    //NEW STUFF 
-
-    const rowEvents = {
-      onClick: (e, row, rowIndex) => {
-        console.log("WE CLICKED")
-        console.log("e: ", e);
-        console.log("ROW: ", row)
-        console.log("RowIndex: ", rowIndex)
-      }
-    };
-
-
-    const createAppointment = (patientID, appointment_type, day, date) => {
-        this.props.firebase.createNewAppointment(patientID, appointment_type, day, date);
-        console.log("YEp, we creating appointment")
-    
-      }
-
-    const handleChange = date => {
-        this.setState({
-          startDate: date
-        });
-      };
-
-      var pictureTypes = ["Alligner Photos", "Check In Photos"]
-    const pictureType = (pictureInt) => {
-      return pictureTypes[pictureInt];
-
-    }
-    
-
-
-    const MyVerticallyCenteredModal = (props) => {
-        return (
-        <Modal
-            {...props}
-            size="lg"
-            aria-labelledby="contained-modal-title-vcenter"
-            centered
-        >
-            <Modal.Header closeButton>
-            </Modal.Header>
-            <Modal.Body>
-            <h2>Schedule Appointment</h2>  
-
-            <DatePicker
-              selected={this.state.startDate}
-              onChange={this.handleChange}
-            />
-
-            <p>Date</p>
-            <input id="fname" className="inputLine"></input>
-
-            <select name="appointment_type" id="appointment_type">
-                <option value="pictures_due">Pictures Due</option>
-                <option value="physical_appointment">Physical Appointment</option>
-                </select>
-
-            </Modal.Body>
-            <Modal.Footer>
-            <Button onClick={() => {
-                console.log("WE DOING THIS!!")
-                createAppointment(this.props.match.params.id, "appointment_type", "day", "date")
-                return props.onHide()}
-                }>Add Patient</Button>
-            </Modal.Footer>
-        </Modal>
-        );
-    }
-
     return (
       <div className="mainBody">
         <div className="header">
           <h1>Patients/{this.props.match.params.id}/{this.props.match.params.photoID}</h1>
-          <Button variant="primary" onClick={() => {this.setState({ isOpen: true })}}>
-            Schedule Appointment
-          </Button>
-
-          <MyVerticallyCenteredModal
-            show={this.state.isOpen}
-            onHide={() => {this.setState({ isOpen: false })}}
-          />
 
         </div>
-        
+
+		{!!this.state.photos && <PDFDownloadLink
+        document={<PhotosPDF photosList={this.state.photos} testProp="Hello"/>}
+        fileName="movielist.pdf"
+        style={{
+          textDecoration: "none",
+          padding: "10px",
+          color: "#4a4a4a",
+          backgroundColor: "#f2f2f2",
+          border: "1px solid #4a4a4a"
+        }}
+      > Download this PDF YO</PDFDownloadLink>}
+
+
+        <p>Hello, I'm actually making a difference in the world. I am</p>        
+
+        {!!this.state.photos && <Tiles data={this.state.photos} />}
+
 
         {loading && <div>Loading ...</div>}
 
 
-        <div className="tableBackground">
-            <div className="tableLeft">
-                <p className="tableText"><strong>DATE TAKEN</strong></p>
-            </div>
-            <div className="tableMid">
-                <p className="tableText"><strong>ALLIGNER NUMBER</strong></p>
-            </div>
-            <div className="tableMid">
-                <p className="tableText"><strong>PHOTO TYPE</strong></p>
-            </div>
-        <div className="tableRight">
-            <p className="tableText"><strong>PHOTOS</strong></p>
-        </div>
-
-{/* 
-        {this.state.photos.map(photo => (
-        <div onClick={() => console.log("WE DID IT!!")}>{
-        <div>
-          <p>Hello</p>
-          {/* 
-            <div className="tableLeft">
-                <p className="tableText">{user.date_taken}</p>
-            </div>
-            <div className="tableMid">
-                <p className="tableText">{user.alligner_number}</p>
-            </div>
-            <div className="tableMid">
-                <p className="tableText">{pictureType(user.photo_type)}</p>
-            </div>
-            <div className="tableRight">
-            {user.photos.map(photo =>(
-                <div className="tableImageDiv">
-                    <img className="tableImage" src={photo} />
-                </div>
-            ))}
-            </div>
-            
-        </div>}</div>
-        ))}*/}
-
-
-        </div>
 
       </div>
     );
