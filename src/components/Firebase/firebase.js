@@ -49,7 +49,7 @@ export default class Firebase {
 
   //GetCalendar(Map with Date)
 
-  createPatientAccount = (username, tempPassword) => {
+  createPatientAccount = (username, tempPassword, firstName, lastName) => {
     this.doCreateUserWithEmailAndPassword(username + "@test.com", tempPassword).catch(function(error) {
   		// Handle Errors here.
   		var errorCode = error.code;
@@ -65,7 +65,7 @@ export default class Firebase {
       }
       //If the doctor does not exist, create them on the DataBase!
       else{
-        myRef.update({[username]: {hasBeenAccessed: false}});
+        myRef.update({[username]: {hasBeenAccessed: false, firstName: firstName, lastName: lastName, identifier: username}});
       }
     })
   }
