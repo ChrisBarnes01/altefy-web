@@ -86,6 +86,7 @@ export default class Firebase {
   }
 
   createNewAppointment = (patientID, appointment_type, date, appointment_length) => {
+    console.log("WE HAVE ADDED A NEW APPOINTMENT");
     var myPatientRef = this.onePatient(patientID);
     var epochTime = date.getTime()
     var calendarEvent = {appointment_date: epochTime, appointment_type: appointment_type, epochTime: epochTime, appointment_length: appointment_length}
@@ -132,7 +133,8 @@ export default class Firebase {
     var calendarMap = new Map();
     for (var i = 0; i < usersObjectKeys.length; i++){
       var user = usersObject[usersObjectKeys[i]];
-      if (user["hasBeenAccessed"]){
+      console.log("USER KEY:", usersObjectKeys[i]);
+      if (user["calendarObjectList"]){
         //Set Calendar for users
         var calendarArray = user["calendarObjectList"];
         var calendarArrayKeys = Object.keys(calendarArray);
@@ -181,6 +183,7 @@ export default class Firebase {
       }
       else{
         console.log("This user hasn't been checked")
+        console.log("user is:", user)
       }
   }
     return calendarMap;
