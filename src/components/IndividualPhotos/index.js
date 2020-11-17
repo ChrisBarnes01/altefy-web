@@ -2,27 +2,20 @@
 //Adapted from https://dev.to/finallynero/generating-pdf-documents-in-react-using-react-pdf-4ka7
 
 import React, { Component } from 'react';
-import BootstrapTable from 'react-bootstrap-table-next';
 import { withFirebase } from '../Firebase';
-import Button from 'react-bootstrap/Button'
-import Modal from 'react-bootstrap/Modal'
 import './individualPhotos.css'
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-//import PhotosPdf from "./photospdf.js";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { Page, Image, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
 
 // Create styles
 const styles = StyleSheet.create({
 	page: {
-	  flexDirection: 'row',
 	  backgroundColor: '#E4E4E4'
 	},
 	section: {
 	  margin: 10,
 	  padding: 10,
-	  flexGrow: 1
 	},
 	image: {
 		marginVertical: 15,
@@ -37,13 +30,7 @@ const styles = StyleSheet.create({
 		<View style={styles.section}>
 			{props.photosList.map(photo =>(
 				<View>
-				<Image
-					style={styles.image}
-					src="https://www.wallpapers13.com/wp-content/uploads/2016/01/Cool-and-Beautiful-Nature-desktop-wallpaper-image-2560X1600-1600x1200.jpg"
-				/>
-				<Image allowDangerousPaths={true} fixed={true} src={photo["image"]}/>
-				<Text>{props.testProp}</Text>
-				<Text>{photo["image"]} yep</Text>
+				<Image src={photo["image"]}/>
 				</View>
 			))}
 		</View>
@@ -206,7 +193,7 @@ class IndividualPhotos extends Component {
         </div>
 
 		{!!this.state.photos && <PDFDownloadLink
-        document={<PhotosPDF photosList={this.state.photos} testProp="Hello"/>}
+        document={<PhotosPDF photosList={this.state.photos}/>}
         fileName="movielist.pdf"
         style={{
           textDecoration: "none",
@@ -215,7 +202,7 @@ class IndividualPhotos extends Component {
           backgroundColor: "#f2f2f2",
           border: "1px solid #4a4a4a"
         }}
-      > Download this PDF YO</PDFDownloadLink>}
+      > Download PDF</PDFDownloadLink>}
 
 
         <p>Hello, I'm actually making a difference in the world. I am</p>        
