@@ -55,8 +55,11 @@ class NewHome extends Component {
   constructor(props) {
     super(props);
  
+    console.log("ID HERE");
+    console.log(props.authUserData.email);
     this.state = {
-      firstName: "must get firstname of doctor",
+      doctorID: props.authUserData.email,
+      firstName: props.name,
       loading: false,
       notifications: [],
       calendarEvents: new Map()
@@ -114,9 +117,9 @@ class NewHome extends Component {
     this.props.firebase.patients().on('value', snapshot => {
       const usersObject = snapshot.val(); 
       this.setState({
-        notifications: this.props.firebase.getNotificationsFromPatientList(usersObject),
+        notifications: this.props.firebase.getNotificationsFromPatientList(usersObject, this.state.doctorID ),
         loading: false,
-        calendarEvents: this.props.firebase.getCalendarFromDoctorList(usersObject)
+        calendarEvents: this.props.firebase.getCalendarFromDoctorList(usersObject, this.state.doctorID)
       });
     });
   }

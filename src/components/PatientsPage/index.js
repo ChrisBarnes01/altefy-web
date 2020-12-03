@@ -11,28 +11,39 @@ class PatientsPage extends Component {
   constructor(props) {
     super(props);
  
+    console.log("props.authuserData.email")
     this.state = {
+      doctorID: props.authUserData.email, 
       loading: false,
       users: [],
       isOpen: false,
     };
+
   }
  
 
   componentDidMount() {
     this.setState({ loading: true });
- 
+
     this.props.firebase.patients().on('value', snapshot => {
       const usersObject = snapshot.val();
       
-      const usersList = Object.keys(usersObject).map(key => ({
-        patient_name:key, 
-        last_alligner_number:usersObject[key].whatsAppNumber, 
-        last_retractor_change:"9/15/20",
-        next_retractor_change:"56463"
-  
-      }));
+      var usersList = [];
+      for (var key of Object.keys(usersObject)){
 
+        console.log("COMPARISON HERE: user's doctor, doctor viewing")
+
+        console.log(usersObject[key].doctor, ":", this.state.doctorID)
+        if (usersObject[key].doctor === this.state.doctorID){
+          var user = {patient_name:key, 
+            last_alligner_number:usersObject[key].whatsAppNumber, 
+            last_retractor_change:"9/15/20",
+            next_retractor_change:"56463"}
+            usersList.push(user)
+        }
+      };
+
+      //
       this.setState({
         users: usersList,
         loading: false,
@@ -115,7 +126,8 @@ class PatientsPage extends Component {
             var tempPassword = document.getElementById("password").value;
             var firstName = document.getElementById("fname").value;
             var lastName = document.getElementById("lname").value;
-            this.props.firebase.createPatientAccount(username, tempPassword, firstName, lastName);
+            var doctorID = props.doctorID;
+            this.props.firebase.createPatientAccount(username, tempPassword, firstName, lastName, doctorID);
             return props.onHide()}
             }>Add Patient</Button>
         </Modal.Footer>
@@ -133,6 +145,7 @@ class PatientsPage extends Component {
           </Button>
 
           <MyVerticallyCenteredModal
+            doctorID={this.state.doctorID}
             show={this.state.isOpen}
             onHide={() => {this.setState({ isOpen: false })}}
           />

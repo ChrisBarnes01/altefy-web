@@ -218,7 +218,7 @@ class IndividualPatient extends Component {
             </div>
         </div>}</div>
         ))}
-        </div>}
+            </div>}
 
         {hasBeenAccessed && (toRender == RENDER_CHECK_INS) &&<div>
           <div>CheckIns</div>

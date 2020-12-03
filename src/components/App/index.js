@@ -28,7 +28,7 @@ const App = () => (
   <Router>
     <AuthUserContext.Consumer>
         {authUser =>
-          authUser ? <AuthorizedAccount/> : <NonAuth />
+          authUser ? <AuthorizedAccount authUserData={authUser}/> : <NonAuth />
         }
       </AuthUserContext.Consumer>
   </Router>
@@ -47,20 +47,20 @@ const App = () => (
   
 );
 
-const AuthorizedAccount = () => (
+const AuthorizedAccount = (props) => (
   <div className="split-sidear">
         <div>
           <Navigation />
         </div>
         <div className="mainBox">
           <Switch>
-            <Route exact path={ROUTES.LANDING} component={NewHome} />
+            <Route exact path={ROUTES.LANDING} render={() => <NewHome authUserData={props.authUserData} name="myName"/>} />
             <Route path={ROUTES.SIGN_UP} component={SignUpPage} />
             <Route path={ROUTES.SIGN_IN} component={SignInPage} />
             <Route path={ROUTES.PASSWORD_FORGET} component={PasswordForgetPage} />
-            <Route path={ROUTES.HOME} component={NewHome} />
-            <Route path={ROUTES.CALENDAR} component={Calendar1} />
-            <Route exact path={ROUTES.PATIENTS} component={PatientsPage} />
+            <Route path={ROUTES.HOME} render={() => <NewHome authUserData={props.authUserData} name="myName"/>} />
+            <Route path={ROUTES.CALENDAR} render={() => <Calendar1 authUserData={props.authUserData} />}/>
+            <Route exact path={ROUTES.PATIENTS} render={() => <PatientsPage authUserData={props.authUserData} />} />
             <Route exact path={ROUTES.PATIENTS + "/:id"} component={IndividualPatient} />
             <Route exact path={ROUTES.PATIENTS + "/:id" + "/:photoID"} component={IndividualPhotos} />
             <Route render={() => <h1>404: page not found</h1>} />

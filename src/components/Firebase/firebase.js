@@ -13,9 +13,19 @@ var firebaseConfig = {
   measurementId: process.env.REACT_APP_MEASUREMENT_ID
 };
 
+function emailToKey(email){
+  return email.replace(".","*-*");
+  }
+
+function keyToEmail(header){
+    return header.replace("*-*",".");
+  }
+  
+var secondaryApp; 
 export default class Firebase {
   constructor(){
     app.initializeApp(firebaseConfig)
+    secondaryApp = app.initializeApp(firebaseConfig, "Secondary");
 
     this.auth = app.auth();
     this.db = app.database();
@@ -38,6 +48,8 @@ export default class Firebase {
   //USER API
   onePatient = patientID => this.db.ref(`patients/${patientID}`);
 
+  oneDoctor = doctorID => this.db.ref(`doctors/${doctorID}`);
+
   patientPhotos = patientID => this.db.ref(`patients/${patientID}/photoSetList`)
 
   particularPhotos = (patientID, photosID) => this.db.ref(`patients/${patientID}/photoSetList/${photosID}`)
@@ -49,14 +61,19 @@ export default class Firebase {
 
   //GetCalendar(Map with Date)
 
-  createPatientAccount = (username, tempPassword, firstName, lastName) => {
-    this.doCreateUserWithEmailAndPassword(username + "@test.com", tempPassword).catch(function(error) {
+  createPatientAccount = (username, tempPassword, firstName, lastName, doctorId) => {
+
+    secondaryApp.auth().createUserWithEmailAndPassword(username + "@test.com", tempPassword).catch(function(error) {
   		// Handle Errors here.
   		var errorCode = error.code;
   		var errorMessage = error.message;
-  		console.log(errorCode);
-  	})
+      console.log(errorCode);
+      secondaryApp.auth().signOut();
+    })
+    console.log("The doctor ID is known to be:");
+    console.log(doctorId);
     var myRef = this.patients();
+    var myDoctorRef = this.oneDoctor(emailToKey(doctorId)); 
     myRef.once('value').then(function(snapshot)
     {
       var data = snapshot.val();	
@@ -65,9 +82,16 @@ export default class Firebase {
       }
       //If the doctor does not exist, create them on the DataBase!
       else{
-        myRef.update({[username]: {hasBeenAccessed: false, firstName: firstName, lastName: lastName, identifier: username}});
+        myRef.update({[username]: {hasBeenAccessed: false, firstName: firstName, lastName: lastName, identifier: username, doctor: doctorId}});
       }
     })
+
+    myDoctorRef.once('value').then(function(snapshot)
+    {
+      myDoctorRef.child("patientsToDoctor").push({patiendID: username});
+    })
+
+
   }
 
   createDoctorAccount = (username, firstname, lastname, clinicname, whatsappnumber, email, passwordOne) => {
@@ -79,8 +103,11 @@ export default class Firebase {
       if(data[username] !== undefined){
       }
       //If the doctor does not exist, create them on the DataBase!
+      
       else{
-        myRef.update({[username]: {firstname:firstname,lastname:lastname,clinicname:clinicname,whatsappnumber:whatsappnumber,email:email,passwordOne:passwordOne }});
+        console.log("Doctor username being created");
+        console.log(username);
+        myRef.update({[emailToKey(email)]: {firstname:firstname,lastname:lastname,clinicname:clinicname,whatsappnumber:whatsappnumber,email:email,passwordOne:passwordOne }});
       }
     })
   }
@@ -113,6 +140,16 @@ export default class Firebase {
   }
 
   getPatientsForParticularDoctor = (doctorId) => {
+    var myDoctorRef = this.oneDoctor(emailToKey(doctorId)); 
+    myDoctorRef.once('value').then(function(snapshot)
+    {
+      var data = snapshot.value(); 
+      console.log(data);
+      var patientListArray = data["patientsToDoctor"]
+      if (patientListArray != undefined){
+        console.log(patientListArray);
+      }
+    })
     return []; 
   } 
 
@@ -128,13 +165,13 @@ export default class Firebase {
   doctors = () => this.db.ref('doctors');
 
 
-  getCalendarFromDoctorList = (usersObject) =>{
+  getCalendarFromDoctorList = (usersObject, doctorID) =>{
     var usersObjectKeys = Object.keys(usersObject); 
     var calendarMap = new Map();
     for (var i = 0; i < usersObjectKeys.length; i++){
       var user = usersObject[usersObjectKeys[i]];
       console.log("USER KEY:", usersObjectKeys[i]);
-      if (user["calendarObjectList"]){
+      if (user["calendarObjectList"] && (user["doctor"] === doctorID)){
         //Set Calendar for users
         var calendarArray = user["calendarObjectList"];
         var calendarArrayKeys = Object.keys(calendarArray);
@@ -189,12 +226,15 @@ export default class Firebase {
     return calendarMap;
   }
 
-  getNotificationsFromPatientList = (usersObject) =>{
+  getNotificationsFromPatientList = (usersObject, doctorID) =>{
     var usersObjectKeys = Object.keys(usersObject); 
+    console.log("USER OBJECT KEYS!!!")
+    console.log(usersObjectKeys)
     var notificationsList = [];
     for (var i = 0; i < usersObjectKeys.length; i++){
       var user = usersObject[usersObjectKeys[i]];
-      if (user["hasBeenAccessed"]){
+      console.log("USER DOCTORL:", user["doctor"])
+      if (user["hasBeenAccessed"]  && (user["doctor"] === doctorID)){
         //Get Notifications for checkins
         var checkInNotificationArray = user["checkInObjectList"]
         var checkInKeys = Object.keys(checkInNotificationArray)
